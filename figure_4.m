@@ -39,8 +39,9 @@ x_dc_1 = x1_psd - mean(x1_psd);
 nfft     = 4096;
 Njanela  = 1024;
 Fs       = 1;     % amostragem unitária
+noverlap = 512;
 
-[PSD1, f1] = pwelch(x_dc_1, hamming(Njanela), [], nfft, Fs);
+[PSD1, f1] = pwelch(x_dc_1, hamming(Njanela), noverlap, nfft, Fs);
 PSD1 = PSD1 ./ max(PSD1);    % normaliza para [0,1]
 wpi1 = 2*f1;                 % w/pi = 2f (pois f em [0,0.5])
 
@@ -92,7 +93,9 @@ erro_norma = sqrt(sum((x - y).^2, 1));
 %% --------------------- DEP (mapa filtrado) ---------------------
 x3_psd = x(3, idxPSD);
 x_dc_2 = x3_psd - mean(x3_psd);
-[PSD2, f2] = pwelch(x_dc_2, hamming(Njanela), [], nfft, Fs);
+noverlap = 512;
+
+[PSD2, f2] = pwelch(x_dc_2, hamming(Njanela), noverlap, nfft, Fs);
 PSD2 = PSD2 ./ max(PSD2);
 wpi2 = 2*f2;
 
@@ -133,7 +136,7 @@ xL = 0.045; wL = 0.445;   % coluna esquerda (tempo)
 xR = 0.545; wR = 0.450;   % coluna direita  (frequência)
 
 % Coluna direita: 3 linhas cheias, quase encostadas (gap vertical mínimo).
-hRow  = 0.282;                 % altura de cada painel
+hRow  = 0.275;                 % altura de cada painel
 gapR  = 0.015;                 % folga vertical entre b, c, e
 yBot  = 0.095;                 % base do painel (e)
 yMid  = yBot + hRow + gapR;    % base do painel (c)
@@ -144,7 +147,7 @@ yTop  = yMid + hRow + gapR;    % base do painel (b)
 yColBot = yBot;              % base da coluna (= base do painel (e))
 yColTop = yTop + hRow;      % topo da coluna (= topo do painel (b))
 gapSE   = 0.015;            % folga entre sinal e seu erro (dentro do par)
-gapPair = 0.025;            % folga entre o par (a) e o par (d)
+gapPair = 0.04;            % folga entre o par (a) e o par (d)
 hPair   = (yColTop - yColBot - gapPair)/2;   % altura de cada par
 hErr    = 0.13;                             % altura do gráfico de erro
 hSig    = hPair - hErr - gapSE;              % altura do gráfico temporal
@@ -159,7 +162,7 @@ xlim([-2,102]); ylim([-3,3]);
 ylabel('$x_{1}(n);\, y_{1}(n)$','FontSize',fsYlab,'Interpreter','latex');
 text(0.02,0.92,lbl_a,'Units','normalized','FontSize',fsLbl,'Interpreter','tex');
 legend([hM hS], {'$x_{1}(n)$','$y_{1}(n)$'}, ...
-    'Interpreter','latex','Location','south','Orientation','horizontal', ...
+    'Interpreter','latex','Location','north','Orientation','horizontal', ...
     'FontSize',fsLeg,'Box','off');
 grid on; set(gca,'XTickLabel',[]);
 xticks([0 25 50 75 100]); yticks([-2 0 2]);
@@ -179,11 +182,11 @@ set(gca,'FontSize',fsAx,'LineWidth',lwBox,'TickLabelInterpreter','latex');
 axes('Position',[xL, yErrD+hErr+gapSE, wL, hSig]);
 hM3 = plot(0:100, x(3,1:101), '-',  'LineWidth', lwCurve, 'Color', cM2); hold on
 hS3 = plot(0:100, y(3,1:101), '--', 'LineWidth', lwCurve, 'Color', cS2); hold off
-xlim([-2,102]); ylim([-3,3]);
+xlim([-2,102]); ylim([-2.2,3]);
 ylabel('$x_{3}(n);\, y_{3}(n)$','FontSize',fsYlab,'Interpreter','latex');
 text(0.02,0.92,lbl_d,'Units','normalized','FontSize',fsLbl,'Interpreter','tex');
 legend([hM3 hS3], {'$x_{3}(n)$','$y_{3}(n)$'}, ...
-    'Interpreter','latex','Location','south','Orientation','horizontal', ...
+    'Interpreter','latex','Location','north','Orientation','horizontal', ...
     'FontSize',fsLeg,'Box','off');
 grid on; set(gca,'XTickLabel',[]);
 xticks([0 25 50 75 100]); yticks([-2 0 2]);
@@ -194,7 +197,7 @@ axes('Position',[xL, yErrD, wL, hErr]);
 plot(0:100, log10(erro_norma(1:101)), 'k-', 'LineWidth', lwErr);
 xlim([-2,102]); ylim([-5.5 1.5]);
 xlabel('$n$','FontSize',fsYlab,'Interpreter','latex');
-ylabel('$\log\|\mathbf{e}(n)\|$','FontSize',fsYlab,'Interpreter','latex');
+ylabel('$\log\|\mathbf{e}_{\mathrm{aug}}(n)\|$','FontSize',fsYlab,'Interpreter','latex');
 grid on;
 xticks([0 25 50 75 100]); yticks([-4 0]);
 set(gca,'FontSize',fsAx,'LineWidth',lwBox,'TickLabelInterpreter','latex');
