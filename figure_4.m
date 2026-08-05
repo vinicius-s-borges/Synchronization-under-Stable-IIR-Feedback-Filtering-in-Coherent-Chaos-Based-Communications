@@ -1,18 +1,18 @@
 clear all
 clc
 
-%% --------------------- Parâmetros do mapa ---------------------
+%% --------------------- Map parameters ---------------------
 alpha = 1.4;
 beta  = 0.3;
-Ntrans = 1000;            % amostras descartadas como transiente (PSD)
-Npsd   = 10001;           % amostras usadas na PSD, após o transiente
-Nitera = Ntrans + Npsd;   % total simulado
+Ntrans = 1000;            % samples discarded as transient (PSD)
+Npsd   = 10001;           % samples used in the PSD, after the transient
+Nitera = Ntrans + Npsd;   % total number of simulated samples
 
-%% --------------------- Simulação (mapa sem filtro) ---------------------
+%% --------------------- Simulation (map without filter) ---------------------
 x1 = zeros(1, Nitera+1);
 x2 = zeros(1, Nitera+1);
 
-% Condições iniciais
+% Initial conditions
 x1(1,1) = 0.74;
 x2(1,1) = 0.18;
 y1(1,1) = 0.35;
@@ -28,46 +28,46 @@ for n = 1:Nitera
     y2(n+1) = y1(n);
 end
 
-% Norma euclidiana do erro (caso sem filtro, painel (a))
+% Euclidean norm of the error (unfiltered case, panel (a))
 erro_norma_a = sqrt((x1 - y1).^2 + (x2 - y2).^2);
 
-%% --------------------- DEP (mapa sem filtro) ---------------------
-% Descarta as primeiras Ntrans amostras (transiente) e usa as Npsd seguintes.
-idxPSD = Ntrans+1 : Ntrans+Npsd;   % índices de 1001 a 11001
+%% --------------------- PSD (map without filter) ---------------------
+% Discards the first Ntrans samples (transient) and uses the following Npsd ones.
+idxPSD = Ntrans+1 : Ntrans+Npsd;   % indices from 1001 to 11001
 x1_psd = x1(idxPSD);
 x_dc_1 = x1_psd - mean(x1_psd);
 nfft     = 4096;
 Njanela  = 1024;
-Fs       = 1;     % amostragem unitária
+Fs       = 1;     % unit sampling rate
 noverlap = 512;
 
 [PSD1, f1] = pwelch(x_dc_1, hamming(Njanela), noverlap, nfft, Fs);
-PSD1 = PSD1 ./ max(PSD1);    % normaliza para [0,1]
-wpi1 = 2*f1;                 % w/pi = 2f (pois f em [0,0.5])
+PSD1 = PSD1 ./ max(PSD1);    % normalizes to [0,1]
+wpi1 = 2*f1;                 % w/pi = 2f (since f lies in [0,0.5])
 
-%% --------------------- Projeto do filtro ---------------------
+%% --------------------- Filter design ---------------------
 Nf  = 5;
 Gz  = 1;
 Rp  = 1;
 Rs  = 10;
 Wn  = 0.4;
 
-% Chebyshev tipo I
+% Chebyshev type I
 [b, a] = cheby1(Nf, Rp, Wn, 'low');
 
-% Resposta em frequência
+% Frequency response
 [H, w] = freqz(b, a, 2048);
 
-%% --------------------- Simulação (mapa filtrado - Mestre) ---------------------
-Na = length(a);   % nº de coeficientes AR
-Nb = length(b);   % nº de coeficientes MA
+%% --------------------- Simulation (filtered map - Master) ---------------------
+Na = length(a);   % number of AR coefficients
+Nb = length(b);   % number of MA coefficients
 L  = Na + Nb;
 
 dimensao_mapa    = 2;
 dimensao_sistema = dimensao_mapa + L - 3;
 
 x = zeros(dimensao_sistema, Nitera+1);
-% Mestre: mesmas condições iniciais do mapa da Fig. 1; demais 9 estados nulos.
+% Master: same initial conditions as the map in Fig. 1; the other 9 states are zero.
 x(1,1) = 0.74;
 x(2,1) = 0.18;
 
@@ -75,22 +75,22 @@ for it = 1:Nitera
     x(:, it+1) = HenonIIR(alpha, beta, dimensao_mapa, Nb, Na, b, a, x(:, it));
 end
 
-%% --------------------- Simulação (mapa filtrado - Escravo) ---------------------
+%% --------------------- Simulation (filtered map - Slave) ---------------------
 y = zeros(dimensao_sistema, Nitera+1);
-% Escravo: condições iniciais do mapa da Fig. 1 + os 9 estados de filtro fixados.
+% Slave: initial conditions of the map in Fig. 1 plus the 9 fixed filter states.
 y(:,1) = [0.35 0.83 0.8566 0.7636 0.9762 0.7815 0.9356 0.7392 0.2536 0.7193 0.6935];
 
 for it = 1:Nitera
     y(:, it+1) = HenonIIR_estravo(alpha, beta, dimensao_mapa, Nb, Na, b, a, y(:, it), x(3,it));
 end
 
-%% --------------------- Erro de sincronização ---------------------
+%% --------------------- Synchronization error ---------------------
 erro_sincronizacao = abs(x(3,:) - y(3,:));
 
-% Norma euclidiana do erro sobre todo o vetor de estados (painel (d))
+% Euclidean norm of the error over the whole state vector (panel (d))
 erro_norma = sqrt(sum((x - y).^2, 1));
 
-%% --------------------- DEP (mapa filtrado) ---------------------
+%% --------------------- PSD (filtered map) ---------------------
 x3_psd = x(3, idxPSD);
 x_dc_2 = x3_psd - mean(x3_psd);
 noverlap = 512;
@@ -99,62 +99,62 @@ noverlap = 512;
 PSD2 = PSD2 ./ max(PSD2);
 wpi2 = 2*f2;
 
-%% --------------------- Cores ---------------------
+%% --------------------- Colors ---------------------
 verdeEscuro = [0 0.4 0];
-cM1 = [0 0.45 0.74];      % mestre x1 (azul)
-cS1 = [0.85 0.33 0.10];   % escravo y1 (laranja)
-cM2 = [0.30 0.65 0.90];   % mestre x3 (azul claro)
-cS2 = [0.95 0.60 0.30];   % escravo y3 (laranja claro)
+cM1 = [0 0.45 0.74];      % master x1 (blue)
+cS1 = [0.85 0.33 0.10];   % slave y1 (orange)
+cM2 = [0.30 0.65 0.90];   % master x3 (light blue)
+cS2 = [0.95 0.60 0.30];   % slave y3 (light orange)
 
-%% --------------------- Rótulos (codificados) ---------------------
-% Altere aqui e reflita no texto do artigo.
-lbl_a = '(a)';   % temporal sem filtro + erro
-lbl_b = '(b)';   % DEP sem filtro
+%% --------------------- Labels (encoded) ---------------------
+% Change them here and reflect the change in the paper text.
+lbl_a = '(a)';   % time domain without filter + error
+lbl_b = '(b)';   % PSD without filter
 lbl_c = '(c)';   % |Hs|
-lbl_d = '(d)';   % temporal filtrado + erro
-lbl_e = '(e)';   % DEP filtrado
+lbl_d = '(d)';   % time domain filtered + error
+lbl_e = '(e)';   % PSD filtered
 
 ttl_left  = 'Time domain';
 ttl_right = 'Frequency domain';
 
-%% --------------------- Estilo comum ---------------------
-lwCurve = 2.5;   % espessura das curvas (mestre e escravo IGUAIS)
-lwErr   = 1.5;   % espessura da curva de erro
-lwBox   = 3;   % espessura do box
-fsAx    = 18;    % fonte dos ticks
-fsYlab  = 18;    % fonte dos rótulos de eixo
-fsLbl   = 18;    % fonte dos rótulos (a)-(e)
-fsTtl   = 18;    % fonte dos títulos de coluna
-fsLeg   = 18;    % fonte das legendas
+%% --------------------- Common style ---------------------
+lwCurve = 2.5;   % curve line width (master and slave are EQUAL)
+lwErr   = 1.5;   % error curve line width
+lwBox   = 3;     % box line width
+fsAx    = 18;    % tick font size
+fsYlab  = 18;    % axis label font size
+fsLbl   = 18;    % font size of labels (a)-(e)
+fsTtl   = 18;    % column title font size
+fsLeg   = 18;    % legend font size
 
-%% --------------------- FIGURA ---------------------
+%% --------------------- FIGURE ---------------------
 figure('Color','w','Units','normalized','OuterPosition',[0.02 0.05 0.96 0.90]);
 
-% Geometria (coordenadas normalizadas)
-% Colunas largas, margens mínimas; painéis bem juntos, ocupando quase tudo.
-xL = 0.045; wL = 0.445;   % coluna esquerda (tempo)
-xR = 0.545; wR = 0.450;   % coluna direita  (frequência)
+% Geometry (normalized coordinates)
+% Wide columns, minimal margins; panels close together, filling almost everything.
+xL = 0.045; wL = 0.445;   % left column (time)
+xR = 0.545; wR = 0.450;   % right column (frequency)
 
-% Coluna direita: 3 linhas cheias, quase encostadas (gap vertical mínimo).
-hRow  = 0.275;                 % altura de cada painel
-gapR  = 0.015;                 % folga vertical entre b, c, e
-yBot  = 0.095;                 % base do painel (e)
-yMid  = yBot + hRow + gapR;    % base do painel (c)
-yTop  = yMid + hRow + gapR;    % base do painel (b)
+% Right column: 3 full rows, nearly touching (minimal vertical gap).
+hRow  = 0.275;                 % height of each panel
+gapR  = 0.015;                 % vertical gap between b, c, e
+yBot  = 0.095;                 % bottom of panel (e)
+yMid  = yBot + hRow + gapR;    % bottom of panel (c)
+yTop  = yMid + hRow + gapR;    % bottom of panel (b)
 
-% Coluna esquerda: dois pares sinal(alto)+erro(baixo) preenchendo toda a
-% altura da coluna, alinhados com a coluna direita [yBot ; yTop+hRow].
-yColBot = yBot;              % base da coluna (= base do painel (e))
-yColTop = yTop + hRow;      % topo da coluna (= topo do painel (b))
-gapSE   = 0.015;            % folga entre sinal e seu erro (dentro do par)
-gapPair = 0.04;            % folga entre o par (a) e o par (d)
-hPair   = (yColTop - yColBot - gapPair)/2;   % altura de cada par
-hErr    = 0.13;                             % altura do gráfico de erro
-hSig    = hPair - hErr - gapSE;              % altura do gráfico temporal
-yErrD   = yColBot;                 % base do erro do bloco (d) = base da coluna
-yErrA   = yColBot + hPair + gapPair; % base do erro do bloco (a)
+% Left column: two signal(top)+error(bottom) pairs filling the whole column
+% height, aligned with the right column [yBot ; yTop+hRow].
+yColBot = yBot;              % bottom of the column (= bottom of panel (e))
+yColTop = yTop + hRow;      % top of the column (= top of panel (b))
+gapSE   = 0.015;            % gap between signal and its error (within the pair)
+gapPair = 0.04;            % gap between pair (a) and pair (d)
+hPair   = (yColTop - yColBot - gapPair)/2;   % height of each pair
+hErr    = 0.13;                             % height of the error plot
+hSig    = hPair - hErr - gapSE;              % height of the time-domain plot
+yErrD   = yColBot;                 % bottom of the error in block (d) = bottom of the column
+yErrA   = yColBot + hPair + gapPair; % bottom of the error in block (a)
 
-%% ===== ESQUERDA - bloco (a): sinal sem filtro + erro =====
+%% ===== LEFT - block (a): unfiltered signal + error =====
 axes('Position',[xL, yErrA+hErr+gapSE, wL, hSig]);
 hM = plot(0:100, x1(1,1:101), '-',  'LineWidth', lwCurve, 'Color', cM1); hold on
 hS = plot(0:100, y1(1,1:101), '--', 'LineWidth', lwCurve, 'Color', cS1); hold off
@@ -169,7 +169,7 @@ xticks([0 25 50 75 100]); yticks([-2 0 2]);
 set(gca,'FontSize',fsAx,'LineWidth',lwBox,'TickLabelInterpreter','latex');
 title(ttl_left,'FontSize',fsTtl,'FontWeight','normal','Interpreter','tex');
 
-% --- erro do bloco (a)  (sem rótulos de x; grid mantido)
+% --- error of block (a)  (no x labels; grid kept)
 axes('Position',[xL, yErrA, wL, hErr]);
 plot(0:100, log10(erro_norma_a(1:101)), 'k-', 'LineWidth', lwErr);
 xlim([-2,102]); ylim([-5.5 1.5]);
@@ -178,7 +178,7 @@ grid on; set(gca,'XTickLabel',[]);
 xticks([0 25 50 75 100]); yticks([-4 0]);
 set(gca,'FontSize',fsAx,'LineWidth',lwBox,'TickLabelInterpreter','latex');
 
-%% ===== ESQUERDA - bloco (d): sinal filtrado + erro =====
+%% ===== LEFT - block (d): filtered signal + error =====
 axes('Position',[xL, yErrD+hErr+gapSE, wL, hSig]);
 hM3 = plot(0:100, x(3,1:101), '-',  'LineWidth', lwCurve, 'Color', cM2); hold on
 hS3 = plot(0:100, y(3,1:101), '--', 'LineWidth', lwCurve, 'Color', cS2); hold off
@@ -192,7 +192,7 @@ grid on; set(gca,'XTickLabel',[]);
 xticks([0 25 50 75 100]); yticks([-2 0 2]);
 set(gca,'FontSize',fsAx,'LineWidth',lwBox,'TickLabelInterpreter','latex');
 
-% --- erro do bloco (d)  (mantém o rótulo de x = n)
+% --- error of block (d)  (keeps the x label = n)
 axes('Position',[xL, yErrD, wL, hErr]);
 plot(0:100, log10(erro_norma(1:101)), 'k-', 'LineWidth', lwErr);
 xlim([-2,102]); ylim([-5.5 1.5]);
@@ -202,8 +202,8 @@ grid on;
 xticks([0 25 50 75 100]); yticks([-4 0]);
 set(gca,'FontSize',fsAx,'LineWidth',lwBox,'TickLabelInterpreter','latex');
 
-%% ===== DIREITA: (b), (c), (e) =====
-% --- (b) DEP sem filtro
+%% ===== RIGHT: (b), (c), (e) =====
+% --- (b) PSD without filter
 axes('Position',[xR, yTop, wR, hRow]);
 plot(wpi1, PSD1, 'Color', verdeEscuro, 'LineWidth', 2);
 xlim([-0.015,1.015]); ylim([-0.1,1.07]);
@@ -214,7 +214,7 @@ xticks([0 0.25 0.5 0.75 1]); yticks([0 0.5 1]);
 set(gca,'FontSize',fsAx,'LineWidth',lwBox,'TickLabelInterpreter','latex');
 title(ttl_right,'FontSize',fsTtl,'FontWeight','normal','Interpreter','tex');
 
-% --- (c) |Hs|  -> rótulo à direita, longe da curva (que ocupa a esquerda)
+% --- (c) |Hs|  -> label on the right, away from the curve (which occupies the left side)
 axes('Position',[xR, yMid, wR, hRow]);
 plot(w/pi, abs(H), 'k', 'LineWidth', 2);
 xlim([-0.015,1.015]); ylim([-0.1,1.07]);
@@ -224,7 +224,7 @@ grid on; set(gca,'XTickLabel',[]);
 xticks([0 0.25 0.5 0.75 1]); yticks([0 0.5 1]);
 set(gca,'FontSize',fsAx,'LineWidth',lwBox,'TickLabelInterpreter','latex');
 
-% --- (e) DEP filtrado
+% --- (e) filtered PSD
 axes('Position',[xR, yBot, wR, hRow]);
 plot(wpi2, PSD2, 'Color', verdeEscuro, 'LineWidth', 2);
 xlim([-0.015,1.015]); ylim([-0.1,1.07]);
@@ -235,7 +235,7 @@ grid on;
 xticks([0 0.25 0.5 0.75 1]); yticks([0 0.5 1]);
 set(gca,'FontSize',fsAx,'LineWidth',lwBox,'TickLabelInterpreter','latex');
 
-%% --------------------- Funções ---------------------
+%% --------------------- Functions ---------------------
 function x_next = HenonIIR(alpha, beta, K, M, N, b, a, x)
 
 x_mapa_original = [alpha - x(3)^2 + beta*x(2);
