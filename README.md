@@ -37,24 +37,37 @@ toolbox.
 | Signal Processing Toolbox | Required **only** by `figure4_henon_iir_sync.m` (`cheby1`, `freqz`, `pwelch`, `hamming`) |
 | Other toolboxes | None |
 
-The following two lines report the MATLAB release in use and whether the Signal Processing
-Toolbox is available:
+The two lines below check the installation. Paste them in the Command Window before running
+the scripts:
 
 ```matlab
 fprintf('MATLAB %s\n', version('-release'));
 fprintf('Signal Processing Toolbox available: %d\n', exist('pwelch','file') == 2);
 ```
 
+A typical output is
+
+```
+MATLAB 2018a
+Signal Processing Toolbox available: 1
+```
+
+The first line must show R2016b or a later release. The second line must show `1`; a `0` means
+the Signal Processing Toolbox is not installed, in which case `figure4_henon_iir_sync.m` will
+stop with an undefined-function error, while `figure1_henon_beta_comparison.m` still runs.
+
 ### 1.2. Reproducibility
 
 No random number generators are used anywhere. All initial conditions are hard-coded in the
-scripts, so repeated runs produce bit-identical results, and no seed needs to be set.
+scripts, so no seed needs to be set and every run reproduces exactly the same trajectories,
+error norms and spectral estimates.
 
 ---
 
 ## 2. Repository structure
 
-The repository contains one script per numerical figure, plus this file.
+The repository has a flat structure: one self-contained script per numerical figure, each named
+after the figure it generates, along with this file.
 
 ```
 .
