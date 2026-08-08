@@ -36,7 +36,6 @@ toolbox.
 | MATLAB | R2016b or newer (the scripts use `xticks` / `yticks`, introduced in R2016b). Tested on R2018a. |
 | Signal Processing Toolbox | Required **only** by `figure4_henon_iir_sync.m` (`cheby1`, `freqz`, `pwelch`, `hamming`) |
 | Other toolboxes | None |
-| GNU Octave | Not tested. The `signal` package provides equivalents of the functions above, but axes positioning and the LaTeX tick interpreter may render differently. |
 
 The following two lines report the MATLAB release in use and whether the Signal Processing
 Toolbox is available:
@@ -124,8 +123,8 @@ Add the repository folder to the MATLAB path (or make it the current folder) and
 by name. Each call opens a new figure window.
 
 ```matlab
-figure_1_henon_beta_comparison
-figure_4_henon_iir_sync
+figure1_henon_beta_comparison
+figure4_henon_iir_sync
 ```
 
 ### 4.2. Exporting
