@@ -34,7 +34,7 @@ toolbox.
 | Item | Version / notes |
 |---|---|
 | MATLAB | R2016b or newer (the scripts use `xticks` / `yticks`, introduced in R2016b). Tested on R2018a. |
-| Signal Processing Toolbox | Required **only** by `figure4_henon_iir_sync.m` (`cheby1`, `freqz`, `pwelch`, `hamming`) |
+| Signal Processing Toolbox | Required **only** by `figure_4_henon_iir_sync.m` (`cheby1`, `freqz`, `pwelch`, `hamming`) |
 | Other toolboxes | None |
 
 The two lines below check the installation. Paste them in the Command Window before running
@@ -53,8 +53,8 @@ Signal Processing Toolbox available: 1
 ```
 
 The first line must show R2016b or a later release. The second line must show `1`; a `0` means
-the Signal Processing Toolbox is not installed, in which case `figure4_henon_iir_sync.m` will
-stop with an undefined-function error, while `figure1_henon_beta_comparison.m` still runs.
+the Signal Processing Toolbox is not installed, in which case `figure_4_henon_iir_sync.m` will
+stop with an undefined-function error, while `figure_1_henon_beta_comparison.m` still runs.
 
 ### 1.2. Reproducibility
 
@@ -71,8 +71,9 @@ after the figure it generates, along with this file.
 
 ```
 .
-├── figure1_henon_beta_comparison.m   % Figure 1 - Hénon map, beta = 0.3 vs beta = 1
-├── figure4_henon_iir_sync.m          % Figure 4 - Hénon map under IIR feedback filtering
+├── figure_1_henon_beta_comparison.m   % Figure 1 - Hénon map, beta = 0.3 vs beta = 1
+├── figure_4_henon_iir_sync.m          % Figure 4 - Hénon map under IIR feedback filtering
+├── LICENSE
 └── README.md
 ```
 
@@ -91,7 +92,7 @@ parameters used.
 Figure 1 contrasts a synchronizing and a non-synchronizing choice of the Hénon-map parameter
 `beta`, using the unfiltered system.
 
-* **Script:** `figure1_henon_beta_comparison.m`
+* **Script:** `figure_1_henon_beta_comparison.m`
 * **Toolboxes:** none (base MATLAB only)
 * **External files:** none
 * **Runtime:** < 1 s
@@ -108,7 +109,7 @@ Figure 4 is the numerical illustration of the main theorem: identical BIBO-stabl
 inserted into the master and slave feedback paths, and the figure shows that synchronization is
 preserved while the transmitted spectrum is reshaped.
 
-* **Script:** `figure4_henon_iir_sync.m`
+* **Script:** `figure_4_henon_iir_sync.m`
 * **Toolboxes:** **Signal Processing Toolbox** — `cheby1` (filter design), `freqz` (frequency
   response), `pwelch` and `hamming` (spectral estimation)
 * **External files:** none. The functions `HenonIIR` (master) and `HenonIIR_estravo` (slave) are
@@ -136,8 +137,8 @@ Add the repository folder to the MATLAB path (or make it the current folder) and
 by name. Each call opens a new figure window.
 
 ```matlab
-figure1_henon_beta_comparison
-figure4_henon_iir_sync
+figure_1_henon_beta_comparison
+figure_4_henon_iir_sync
 ```
 
 ### 4.2. Exporting
