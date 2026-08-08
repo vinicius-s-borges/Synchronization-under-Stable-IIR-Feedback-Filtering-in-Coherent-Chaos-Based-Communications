@@ -124,8 +124,8 @@ Add the repository folder to the MATLAB path (or make it the current folder) and
 by name. Each call opens a new figure window.
 
 ```matlab
-figure1_henon_beta_comparison
-figure4_henon_iir_sync
+figure_1_henon_beta_comparison
+figure_4_henon_iir_sync
 ```
 
 ### 4.2. Exporting
